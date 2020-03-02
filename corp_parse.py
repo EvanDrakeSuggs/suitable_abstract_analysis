@@ -4,7 +4,9 @@ import pickle
 #dir = "artio_corpus/"
 entry = os.listdir();
 dir_suitable = [x for x in entry  if "suitable.txt" in x]
-print(dir_suitable);
+dir_unsuitable = "artio_corpus/artio_unsuit_1000.txt"
+print(dir_suitable)
+print(dir_unsuitable)
 
 def entry_split(entry):
     exp = re.compile("\n[A-Z][A-Z]")
@@ -14,31 +16,39 @@ def entry_split(entry):
     entry_dictionary = dict(zip(labels,entry_values))
     return entry_dictionary
 
+# turn to function
+def to_array(directory):
+    for file in directory:
+        print(file)
+        parse = open(file,'r')
+        parse = re.split(r"\nER\n",parse.read())
+        entries = []
+        for entry in parse:
+            #entries.append(entry_split(entry))
+            entries.append(entry)
+            
+            #print(entry_split(entry))
+            #if(input("Want to break ('y'): ") == "y"):
+            #  break
+        return entries
 
-for file in dir_suitable:
-    print(file)
-    parse = open("artio_corpus/suitable_artio.txt",'r')
-    parse = re.split(r"\nER\n",parse.read())
-    entries = []
-    for entry in parse:
-        #entries.append(entry_split(entry))
-        entries.append(entry)
-        
-        #print(entry_split(entry))
-        #if(input("Want to break ('y'): ") == "y"):
-         #  break
+entries = to_array(dir_suitable)
 import gensim
 from gensim.models.doc2vec import Doc2Vec, TaggedDocument
 from nltk.tokenize import word_tokenize
+print("length: "+str(len(entries)))
+entries = entries[10:]
+tests = entries[:10]
 
-print("length"+str(len(entries)))
+pickle.dump(tests,open("tests.array",'wb'))
+
 # tagging data
 tagged_data = [TaggedDocument(words=word_tokenize(_d.lower()),tags=[str(i)]) for i, _d in enumerate(entries)]
-
+tagged_test = [TaggedDocument(words=word_tokenize(_d.lower()),tags=[str(i)]) for i, _d in enumerate(tests)]
 max_epochs = 100
 vec_size = 20
 alpha = 0.025
-model = Doc2Vec(size=vec_size,
+model = Doc2Vec(vector_size=vec_size,
                 alpha=alpha, 
                 min_alpha=0.00025,
                 min_count=1,
@@ -48,7 +58,7 @@ for epoch in range(max_epochs):
     print('iteration {0}'.format(epoch))
     model.train(tagged_data,
                 total_examples=model.corpus_count,
-                epochs=model.iter)
+                epochs=model.epochs)
     #decrease the learning rate
     model.alpha -= 0.0002
     #
@@ -56,9 +66,12 @@ for epoch in range(max_epochs):
 
 model.save("d2v.model")
 print("Model Saved")
-
+#print(model.infer_vector(tests[0].split()))
 
 # some sort of distance/similarty, either cosine (gensimmatutils.cossim) or hellinger distance
+
+
+
 """ 
 class Corpus():
     def __init__(self,file_object):
@@ -72,3 +85,4 @@ class Corpus():
     
     def __next__(self):"""
         
+

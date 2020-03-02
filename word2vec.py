@@ -58,4 +58,4 @@ print("Model Saved")
 
 # some sort of distance/similarty, either cosine (gensimmatutils.cossim) or hellinger distance
 from scipy import spatial
-diff = spatial.distance.cosine
+#diff = spatial.distance.cosine()
