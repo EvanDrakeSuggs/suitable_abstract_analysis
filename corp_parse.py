@@ -2,13 +2,15 @@ import os
 import re
 import pickle
 #dir = "artio_corpus/"
-entry = os.listdir();
-dir_suitable = [x for x in entry  if "suitable.txt" in x]
-dir_unsuitable = "artio_corpus/artio_unsuit_1000.txt"
+entry = os.listdir()
+dir_suitable = [x for x in entry  if "unsuit" in x]
+files = os.listdir("artio_corpus/Artiodactyl Unsuitable");
+dir_unsuitable = ["artio_corpus/Artiodactyl Unsuitable/"+file for file in files]
 print(dir_suitable)
 print(dir_unsuitable)
 
 def entry_split(entry):
+    # every portion of the web of science data begins with two capital letters
     exp = re.compile("\n[A-Z][A-Z]")
     labels = [entry[:3]]+exp.findall(entry)
     labels = [label[1:] for label in labels]
@@ -17,12 +19,12 @@ def entry_split(entry):
     return entry_dictionary
 
 # turn to function
-def to_array(directory):
-    for file in directory:
+def to_array(directory_list):
+    entries = []
+    for file in directory_list:
         print(file)
         parse = open(file,'r')
         parse = re.split(r"\nER\n",parse.read())
-        entries = []
         for entry in parse:
             #entries.append(entry_split(entry))
             entries.append(entry)
@@ -30,9 +32,10 @@ def to_array(directory):
             #print(entry_split(entry))
             #if(input("Want to break ('y'): ") == "y"):
             #  break
-        return entries
+    entries = [entry for entry in entries if entry != '\nEF']
+    return entries
 
-entries = to_array(dir_suitable)
+entries = to_array(dir_unsuitable)
 import gensim
 from gensim.models.doc2vec import Doc2Vec, TaggedDocument
 from nltk.tokenize import word_tokenize
@@ -64,7 +67,7 @@ for epoch in range(max_epochs):
     #
     model.min_alpha = model.alpha
 
-model.save("d2v.model")
+model.save("unsuit_d2v.model")
 print("Model Saved")
 #print(model.infer_vector(tests[0].split()))
 

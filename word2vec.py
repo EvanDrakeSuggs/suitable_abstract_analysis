@@ -4,6 +4,7 @@ import pickle
 #dir = "artio_corpus/"
 entry = os.listdir();
 dir_suitable = [x for x in entry  if "suitable.txt" in x]
+dir_unsuitable = ["artio_corpus/artio_unsuit_1000.txt"]
 print(dir_suitable);
 
 def entry_split(entry):
@@ -15,24 +16,30 @@ def entry_split(entry):
     return entry_dictionary
 
 
-for file in dir_suitable:
-    print(file)
-    parse = open("artio_corpus/suitable_artio.txt",'r')
-    parse = re.split(r"\nER\n",parse.read())
-    entries = []
-    abstracts = []
-    for entry in parse:
-        #abstracts.append((entry_split(entry)['AB']))
-        entries.append(entry)
-        
-        #print(entry_split(entry))
-        #if(input("Want to break ('y'): ") == "y"):
-         #  break
+def to_array(directory):
+    for file in directory:
+        print(file)
+        parse = open(file,'r')
+        parse = re.split(r"\nER\n",parse.read())
+        entries = []
+        for entry in parse:
+            #entries.append(entry_split(entry))
+            entries.append(entry)
+            
+            #print(entry_split(entry))
+            #if(input("Want to break ('y'): ") == "y"):
+            #  break
+        return entries
+entries = to_array(dir_suitable)
+print("length: "+str(len(entries)))
+entry_dict = [entry_split(entry) for entry in entries]
+entries = [entry['AB'] for entry in entry_dict if 'AB' in entry.keys()]
+print("length: "+str(len(entries)))
 import gensim
 from gensim.models import Word2Vec
 from nltk.tokenize import word_tokenize
 
-print("length: "+str(len(entries)))
+
 # tagging data
 #tagged_data = [TaggedDocument(words=word_tokenize(_d.lower()),tags=[str(i)]) for i, _d in enumerate(entries)]
 words = ([entry.split() for entry in entries])
@@ -40,11 +47,11 @@ words = ([entry.split() for entry in entries])
 max_epochs = 100
 vec_size = 20
 alpha = 0.025
-model = Word2Vec(data,size=100,window=5,min_count=1,workers=4)
-model.build_vocab(words)
+model = Word2Vec(words,size=100,window=5,min_count=1,workers=4)
+#model.build_vocab(words)
 for epoch in range(max_epochs):
     print('iteration {0}'.format(epoch))
-    model.train(tagged_data,
+    model.train(words,
                 total_examples=model.corpus_count,
                 epochs=model.epochs)
     #decrease the learning rate
@@ -59,3 +66,4 @@ print("Model Saved")
 # some sort of distance/similarty, either cosine (gensimmatutils.cossim) or hellinger distance
 from scipy import spatial
 #diff = spatial.distance.cosine()
+
