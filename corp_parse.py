@@ -1,9 +1,12 @@
 import os
 import re
 import pickle
-#dir = "artio_corpus/"
+import gensim
+from gensim.models.doc2vec import Doc2Vec, TaggedDocument
+from nltk.tokenize import word_tokenize
+import lib
 entry = os.listdir()
-dir_suitable = [x for x in entry  if "unsuit" in x]
+dir_suitable = ['artio_corpus/suitable_artio.txt', 'lago_corpus/suitable_lago.txt']
 files = os.listdir("artio_corpus/Artiodactyl Unsuitable");
 dir_unsuitable = ["artio_corpus/Artiodactyl Unsuitable/"+file for file in files]
 print(dir_suitable)
@@ -35,21 +38,25 @@ def to_array(directory_list):
     entries = [entry for entry in entries if entry != '\nEF']
     return entries
 
-entries = to_array(dir_unsuitable)
-import gensim
-from gensim.models.doc2vec import Doc2Vec, TaggedDocument
-from nltk.tokenize import word_tokenize
+
+entries = lib.to_array(dir_unsuitable)
+entries = [lib.entry_split(entry) for entry in entries]
+entries = [entry['AB'] for entry in entries if 'AB' in entry.keys()]
 print("length: "+str(len(entries)))
-entries = entries[10:]
-tests = entries[:10]
+
+train = entries[:(len(entries)//2)]
+tests = entries[len(entries)//2:]
+#entries = entries[10:]
+#tests = entries[:10]
 
 pickle.dump(tests,open("tests.array",'wb'))
 
 # tagging data
-tagged_data = [TaggedDocument(words=word_tokenize(_d.lower()),tags=[str(i)]) for i, _d in enumerate(entries)]
+tagged_data = [TaggedDocument(words=word_tokenize(_d.lower()),tags=[str(i)]) for i, _d in enumerate(train)]
+#pickle.dump(tagged_data,open('tagged_data.array','wb'))
 tagged_test = [TaggedDocument(words=word_tokenize(_d.lower()),tags=[str(i)]) for i, _d in enumerate(tests)]
 max_epochs = 100
-vec_size = 20
+vec_size = 300
 alpha = 0.025
 model = Doc2Vec(vector_size=vec_size,
                 alpha=alpha, 
@@ -67,12 +74,12 @@ for epoch in range(max_epochs):
     #
     model.min_alpha = model.alpha
 
-model.save("unsuit_d2v.model")
+model.save("abs_d2v.model")
 print("Model Saved")
-#print(model.infer_vector(tests[0].split()))
+for test in tests:
+    print(model.infer_vector(test.split()))
 
 # some sort of distance/similarty, either cosine (gensimmatutils.cossim) or hellinger distance
-
 
 
 """ 
