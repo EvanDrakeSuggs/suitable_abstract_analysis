@@ -1,6 +1,7 @@
 import os
 import re
-
+# parser library for RIS format used by Web of Science. 
+# It seems like either the WOS format is nonstandard or every current parser for it is out of date
 # takes entry of web of science files and splits it into dictionary
 def entry_split(entry):
     # every portion of the web of science data begins with two capital letters
